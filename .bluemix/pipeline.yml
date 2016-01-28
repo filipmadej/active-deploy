@@ -1,0 +1,102 @@
+---
+stages:
+- name: Build Stage
+  inputs:
+  - type: git
+    branch: master
+  triggers:
+  - type: stage
+  jobs:
+  - name: Build
+    type: builder
+    artifact_dir: ''
+- name: Active Deploy
+  inputs:
+  - type: job
+    stage: Build Stage
+    job: Build
+  triggers:
+  - type: stage
+  properties:
+  - name: NAME
+    value: ''
+    type: text
+  - name: GROUP_SIZE
+    value: '3'
+    type: text
+  - name: ROUTE_HOSTNAME
+    value: adplug
+    type: text
+  - name: ROUTE_DOMAIN
+    value: mybluemix.net
+    type: text
+  - name: PORT
+    value: '80'
+    type: text
+  - name: TEST_RESULT_FOR_AD
+    value: ''
+    type: text
+  - name: CONCURRENT_VERSIONS
+    value: '5'
+    type: text
+  - name: TARGET_PLATFORM
+    value: CloudFoundry
+    type: text
+  jobs:
+  - name: Deploy Single Instance
+    type: deployer
+    target:
+      region_id: ibm:yp:us-south
+      organization: eergun_org
+      space: dev
+      application: adplug
+    script: |
+      #!/bin/bash
+      NAME="${CF_APP}_${BUILD_NUMBER}"
+      cf push "${NAME}" --no-route -i 1 -m 64M
+      export NAME
+  - name: Begin AD
+    type: deployer
+    extension_id: ibm.devops.services.pipeline.devops.ad_start
+    target:
+      url: https://api.ng.bluemix.net
+      organization: eergun_org
+      space: dev
+    RAMPDOWN_DURATION: 1m
+    RAMPUP_DURATION: 1m
+    COMMAND: |-
+      #!/bin/bash
+      source ${EXT_DIR}/git_util.sh
+      git_retry clone https://github.com/Osthanes/update_service.git activedeploy
+      /bin/bash activedeploy/activedeploy_step_1.sh
+  - name: Test
+    type: tester
+    script: |-
+      #!/bin/bash
+      set -x
+
+      # invoke tests here
+
+      # Set TEST_RESULT_FOR_AD: 0 for successful tests, non-zero for failures
+      # 'exit' SHOULD NOT be used in this script
+
+      # For now just randomly assign value
+      if (($(($RANDOM % 100)) < 30)); then
+        export TEST_RESULT_FOR_AD=1
+      else
+        export TEST_RESULT_FOR_AD=0
+      fi
+
+      #export TEST_RESULT_FOR_AD=1
+  - name: Complete AD
+    type: deployer
+    extension_id: ibm.devops.services.pipeline.devops.ad_finish
+    target:
+      url: https://api.ng.bluemix.net
+      organization: eergun_org
+      space: dev
+    COMMAND: |-
+      #!/bin/bash
+      source ${EXT_DIR}/git_util.sh
+      git_retry clone https://github.com/Osthanes/update_service.git activedeploy
+      /bin/bash activedeploy/activedeploy_step_2.sh
