@@ -46,7 +46,7 @@ stages:
   - name: Deploy Single Instance
     type: deployer
     target:
-      region_id: ibm:yp:us-south 
+      region_id: ${BLUEMIX_REGION_ID}
       organization: ${CF_ORGANIZATION}
       space: ${CF_SPACE}
       application: ${CF_APP}
