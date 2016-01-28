@@ -46,10 +46,9 @@ stages:
   - name: Deploy Single Instance
     type: deployer
     target:
-      region_id: ibm:yp:us-south
-      organization: eergun_org
-      space: dev
-      application: adplug
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
+      application: ${CF_APP}
     script: |
       #!/bin/bash
       NAME="${CF_APP}_${BUILD_NUMBER}"
@@ -59,9 +58,9 @@ stages:
     type: deployer
     extension_id: ibm.devops.services.pipeline.devops.ad_start
     target:
-      url: https://api.ng.bluemix.net
-      organization: eergun_org
-      space: dev
+      url: ${CF_TARGET_URL}
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
     RAMPDOWN_DURATION: 1m
     RAMPUP_DURATION: 1m
     COMMAND: |-
@@ -92,9 +91,9 @@ stages:
     type: deployer
     extension_id: ibm.devops.services.pipeline.devops.ad_finish
     target:
-      url: https://api.ng.bluemix.net
-      organization: eergun_org
-      space: dev
+      url: ${CF_TARGET_URL}
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
     COMMAND: |-
       #!/bin/bash
       source ${EXT_DIR}/git_util.sh
