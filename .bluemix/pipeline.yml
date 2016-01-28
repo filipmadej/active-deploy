@@ -25,7 +25,7 @@ stages:
     value: '3'
     type: text
   - name: ROUTE_HOSTNAME
-    value: adplug
+    value: ${CF_APP}
     type: text
   - name: ROUTE_DOMAIN
     value: mybluemix.net
