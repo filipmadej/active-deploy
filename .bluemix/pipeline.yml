@@ -24,23 +24,8 @@ stages:
   - name: GROUP_SIZE
     value: '3'
     type: text
-  - name: ROUTE_HOSTNAME
-    value: ${CF_APP}
-    type: text
-  - name: ROUTE_DOMAIN
-    value: mybluemix.net
-    type: text
-  - name: PORT
-    value: '80'
-    type: text
   - name: TEST_RESULT_FOR_AD
     value: ''
-    type: text
-  - name: CONCURRENT_VERSIONS
-    value: '5'
-    type: text
-  - name: TARGET_PLATFORM
-    value: CloudFoundry
     type: text
   jobs:
   - name: Deploy Single Instance
@@ -75,19 +60,23 @@ stages:
       #!/bin/bash
       set -x
 
+      # Start by checking if a previous test failed. If so, quit now.
+      # Make sure exit code is 0 (success).
+      if [[ -n ${TEST_RESULT_FOR_AD} ]] && (( ${TEST_RESULT_FOR_AD} )); then
+        exit 0
+      fi
+
       # invoke tests here
 
       # Set TEST_RESULT_FOR_AD: 0 for successful tests, non-zero for failures
-      # 'exit' SHOULD NOT be used in this script
+      # 'exit' SHOULD NOT be used in this script after this point.
 
-      # For now just randomly assign value
+      # This test randomly decides whether to pass/fail (70% probability to pass)
       if (($(($RANDOM % 100)) < 30)); then
         export TEST_RESULT_FOR_AD=1
       else
         export TEST_RESULT_FOR_AD=0
       fi
-
-      #export TEST_RESULT_FOR_AD=1
   - name: Complete Active Deploy
     type: deployer
     extension_id: ibm.devops.services.pipeline.devops.ad_finish
