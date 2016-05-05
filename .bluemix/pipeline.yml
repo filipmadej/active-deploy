@@ -31,7 +31,7 @@ stages:
   - name: Deploy Single Instance
     type: deployer
     target:
-      region_id: ${BLUEMIX_REGION_ID}
+      url: ${CF_TARGET_URL}
       organization: ${CF_ORGANIZATION}
       space: ${CF_SPACE}
       application: ${CF_APP}
