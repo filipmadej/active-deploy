@@ -10,3 +10,33 @@ stages:
   - name: Build
     type: builder
     artifact_dir: ''
+- name: Active Deploy
+  inputs:
+  - type: job
+    stage: Build Stage
+    job: Build
+  triggers:
+  - type: stage
+  properties:
+  - name: NAME
+    value: ''
+    type: text
+  - name: GROUP_SIZE
+    value: '3'
+    type: text
+  - name: TEST_RESULT_FOR_AD
+    value: ''
+    type: text
+  jobs:
+  - name: Deploy Single Instance
+    type: deployer
+    target:
+      region_id: ${BLUEMIX_REGION_ID}
+      organization: ${CF_ORGANIZATION}
+      space: ${CF_SPACE}
+      application: ${CF_APP}
+    script: |
+      #!/bin/bash
+      NAME="${CF_APP}_${BUILD_NUMBER}"
+      cf push "${NAME}" --no-route -i 1 -m 64M
+      export NAME
